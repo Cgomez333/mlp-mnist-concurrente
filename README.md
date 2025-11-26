@@ -17,12 +17,14 @@ Este proyecto implementa un **Perceptrón Multicapa (MLP)** desde cero en difere
 ## 🎯 Especificaciones
 
 ### Arquitectura MLP (Fija)
+
 - **Entrada**: 784 neuronas (28×28 píxeles)
 - **Capa Oculta**: 512 neuronas (ReLU)
 - **Salida**: 10 neuronas (Softmax)
 - **Loss**: Cross-Entropy
 
 ### Hiperparámetros
+
 ```python
 EPOCHS = 10
 LEARNING_RATE = 0.01
@@ -56,12 +58,14 @@ mlp-mnist-concurrente/
 ### Requisitos
 
 **Python**:
+
 ```bash
 pip install numpy matplotlib
 pip install pycuda  # Solo para versión GPU
 ```
 
 **C/C++**:
+
 ```bash
 gcc --version  # GCC con soporte OpenMP
 ```
@@ -77,18 +81,21 @@ python preprocess_data.py  # Genera archivos .bin para C
 ## 🔧 Ejecución
 
 ### Python Secuencial
+
 ```bash
 cd python_secuencial
 python train.py
 ```
 
 ### Python Multiprocessing
+
 ```bash
 cd python_multiprocessing
 python train_parallel.py --processes 4
 ```
 
 ### C Secuencial
+
 ```bash
 cd c_secuencial
 make
@@ -96,6 +103,7 @@ make
 ```
 
 ### C + OpenMP
+
 ```bash
 cd c_openmp
 make
@@ -104,6 +112,7 @@ export OMP_NUM_THREADS=8
 ```
 
 ### PyCUDA (en Colab)
+
 ```bash
 # Ver notebooks/pycuda_experiments.ipynb
 ```
@@ -128,6 +137,7 @@ python plot_results.py        # Genera gráficas
 ## 📚 Documentación Completa
 
 **📖 Lee [`docs/experiment_design.md`](docs/experiment_design.md)** para:
+
 - ✅ Fundamentación matemática (forward/backward propagation)
 - ✅ Detalles de implementación por módulo
 - ✅ Protocolo de validación
@@ -138,11 +148,13 @@ python plot_results.py        # Genera gráficas
 ## ⚠️ Restricciones
 
 **NO se permite**:
+
 - ❌ TensorFlow, Keras, PyTorch
 - ❌ Librerías de Deep Learning pre-construidas
 - ❌ BLAS/LAPACK en C
 
 **Permitido**:
+
 - ✅ NumPy (solo para Python)
 - ✅ OpenMP, CUDA
 - ✅ Librerías estándar (stdio, stdlib, math)
