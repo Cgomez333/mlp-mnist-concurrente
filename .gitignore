@@ -1,17 +1,26 @@
+# Python
 __pycache__/
 *.pyc
 *.pyo
 *.pyd
+*.py[cod]
+*$py.class
 .venv/
 venv/
 .env
+ENV/
+*.egg-info/
+dist/
+build/
 
-data/raw/
-data/processed/
+# Dataset files (too large for git)
+data/mnist/*.bin
+data/mnist/*.idx*
+data/mnist/*.gz
+*.npy
 *.npz
-*.idx
-*.csv
 
+# Compiled C/C++
 *.o
 *.obj
 *.exe
@@ -19,8 +28,35 @@ data/processed/
 *.a
 *.so
 *.dll
+c_secuencial/train_seq
+c_openmp/train_omp
 
+# Results (keep structure, ignore large files)
+results/raw/*.csv
+results/raw/weights/*.npy
+results/raw/weights/*.bin
+results/figures/*.png
+results/figures/*.pdf
+results/figures/*.jpg
+
+# IDE
 .vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
 *.log
 *.tmp
 *~
+
+# Jupyter
+.ipynb_checkpoints
+*.ipynb
+
+# Keep directory structure
+!.gitkeep
