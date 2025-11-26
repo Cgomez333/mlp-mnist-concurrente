@@ -15,7 +15,8 @@ build/
 
 # Dataset files (too large for git)
 data/mnist/*.bin
-data/mnist/*.idx*
+data/mnist/*idx*
+data/mnist/*ubyte
 data/mnist/*.gz
 *.npy
 *.npz
@@ -29,7 +30,13 @@ data/mnist/*.gz
 *.so
 *.dll
 c_secuencial/train_seq
+c_secuencial/build/
+c_secuencial/bin/
 c_openmp/train_omp
+c_openmp/build/
+c_openmp/bin/
+cuda/build/
+cuda/bin/
 
 # Results (keep structure, ignore large files)
 results/raw/*.csv

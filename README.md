@@ -96,19 +96,35 @@ python train_parallel.py --processes 4
 
 ### C Secuencial
 
+**Primero instala GCC** (ver `docs/INSTALL_C_TOOLS.md`):
+
 ```bash
 cd c_secuencial
+
+# Opción 1: Con Make (si tienes MinGW/MSYS2)
 make
-./train_seq
+
+# Opción 2: Script de Windows
+compile.bat
+
+# Ejecutar
+./bin/train_seq.exe  # Windows
+./bin/train_seq      # Linux/Mac
 ```
 
 ### C + OpenMP
 
 ```bash
 cd c_openmp
+
+# Compilar
 make
-export OMP_NUM_THREADS=8
-./train_omp
+# o
+compile.bat
+
+# Ejecutar con diferentes hilos
+set OMP_NUM_THREADS=1 && ./bin/train_omp.exe  # Windows
+export OMP_NUM_THREADS=8 && ./bin/train_omp   # Linux/Mac
 ```
 
 ### PyCUDA (en Colab)
