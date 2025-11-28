@@ -1,0 +1,18 @@
+{
+  "name": "mlp-mnist-api",
+  "version": "1.0.0",
+  "description": "API REST para servir modelos MLP MNIST",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "keywords": ["mlp", "mnist", "openmp", "api"],
+  "author": "Universidad de Caldas",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5"
+  }
+}

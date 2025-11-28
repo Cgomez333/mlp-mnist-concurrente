@@ -1,0 +1,378 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.app-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #333;
+}
+
+.app-header {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 2rem;
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.app-header h1 {
+  font-size: 2.5rem;
+  color: #667eea;
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.tab-navigation {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  padding: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tab {
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.tab:hover {
+  background: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.tab.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  font-weight: 600;
+}
+
+.app-content {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.tab-content {
+  background: white;
+  border-radius: 12px;
+  padding: 2rem;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.tab-content h2 {
+  color: #667eea;
+  margin-bottom: 1.5rem;
+  font-size: 2rem;
+}
+
+.info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.info-card {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+.info-card h3 {
+  color: #333;
+  margin-bottom: 1rem;
+  font-size: 1.3rem;
+}
+
+.architecture {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.layer {
+  background: #667eea;
+  color: white;
+  padding: 1rem;
+  border-radius: 8px;
+  text-align: center;
+  flex: 1;
+  font-weight: 600;
+}
+
+.layer small {
+  font-size: 0.8rem;
+  opacity: 0.9;
+}
+
+.arrow {
+  font-size: 1.5rem;
+  color: #667eea;
+  font-weight: bold;
+}
+
+.results-list, .params-list, .impl-list {
+  list-style: none;
+}
+
+.results-list li, .params-list li, .impl-list li {
+  padding: 0.5rem 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.results-list li:last-child, .params-list li:last-child, .impl-list li:last-child {
+  border-bottom: none;
+}
+
+.draw-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+@media (max-width: 768px) {
+  .draw-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+.canvas-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.canvas-controls {
+  display: flex;
+  gap: 1rem;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.btn-primary {
+  background: #667eea;
+  color: white;
+}
+
+.btn-primary:hover {
+  background: #5568d3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+}
+
+.btn-secondary {
+  background: #e0e0e0;
+  color: #333;
+}
+
+.btn-secondary:hover {
+  background: #d0d0d0;
+}
+
+.prediction-panel {
+  background: #f8f9fa;
+  padding: 2rem;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.prediction-result {
+  margin: 2rem 0;
+}
+
+.digit-prediction {
+  font-size: 6rem;
+  font-weight: bold;
+  color: #667eea;
+  margin: 1rem 0;
+}
+
+.confidence {
+  font-size: 1.2rem;
+  color: #666;
+}
+
+.probabilities {
+  margin-top: 2rem;
+  text-align: left;
+}
+
+.info-box {
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  padding: 1rem;
+  margin-top: 2rem;
+  border-radius: 4px;
+}
+
+.dataset-info {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+}
+
+.code-block {
+  background: #2d2d2d;
+  color: #f8f8f2;
+  padding: 1rem;
+  border-radius: 4px;
+  margin-top: 1rem;
+  font-family: 'Courier New', monospace;
+  overflow-x: auto;
+}
+
+.code-block code {
+  font-size: 0.9rem;
+  line-height: 1.6;
+}
+
+.sample-images {
+  margin-top: 2rem;
+}
+
+.info-text {
+  color: #666;
+  line-height: 1.8;
+  margin-top: 1rem;
+}
+
+.performance-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+.metric-card {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 2rem;
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+.metric-card h3 {
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  opacity: 0.9;
+}
+
+.metric-value {
+  font-size: 3rem;
+  font-weight: bold;
+  margin: 0.5rem 0;
+}
+
+.metric-card p {
+  opacity: 0.8;
+  font-size: 0.9rem;
+}
+
+.benchmark-table-container {
+  margin: 2rem 0;
+  overflow-x: auto;
+}
+
+.benchmark-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+.benchmark-table th {
+  background: #667eea;
+  color: white;
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.benchmark-table td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.benchmark-table tr:hover {
+  background: #f8f9fa;
+}
+
+.benchmark-table tr.highlight {
+  background: #e8f5e9;
+  font-weight: 600;
+}
+
+.analysis-section {
+  margin-top: 2rem;
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 8px;
+}
+
+.analysis-list {
+  list-style: none;
+  margin-top: 1rem;
+}
+
+.analysis-list li {
+  padding: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.app-footer {
+  background: rgba(255, 255, 255, 0.95);
+  padding: 1.5rem;
+  text-align: center;
+  margin-top: 3rem;
+  color: #666;
+}
+
+@media (max-width: 768px) {
+  .app-header h1 {
+    font-size: 1.8rem;
+  }
+  
+  .subtitle {
+    font-size: 1rem;
+  }
+  
+  .info-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .architecture {
+    flex-direction: column;
+  }
+  
+  .arrow {
+    transform: rotate(90deg);
+  }
+}

@@ -1,0 +1,58 @@
+=================================================================
+MLP MNIST - Implementación OpenMP en C
+=================================================================
+
+Cargando dataset de entrenamiento...
+✓ Dataset cargado exitosamente
+  - 60000 imágenes de 784 características
+  - Labels one-hot de 10 clases
+Cargando dataset de prueba...
+✓ Dataset cargado exitosamente
+  - 10000 imágenes de 784 características
+  - Labels one-hot de 10 clases
+
+=== Dataset Info ===
+Muestras: 60000
+Imagen size: 784
+Clases: 10
+Memoria imágenes: 179.44 MB
+Memoria labels: 2.29 MB
+
+Primera imagen (primeros 10 valores): 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 0.000 ...
+Primera label (one-hot): 0 0 0 0 0 1 0 0 0 0 
+Creando modelo MLP...
+MLP creado: 784 -> 512 -> 10 (batch_size=64)
+OpenMP habilitado: 2 threads
+
+=== MLP Info ===
+Architecture: 784 -> 512 -> 10
+Batch size: 64
+Parameters: 407050
+
+=================================================================
+Iniciando entrenamiento (10 epochs, batch_size=64, lr=0.010)
+=================================================================
+
+Epoch  1/10 - Loss: 1.0543 - Accuracy: 0.7864 - Time: 211.14s
+Epoch  2/10 - Loss: 0.4546 - Accuracy: 0.8814 - Time: 255.28s
+Epoch  3/10 - Loss: 0.3716 - Accuracy: 0.8977 - Time: 271.89s
+Epoch  4/10 - Loss: 0.3337 - Accuracy: 0.9064 - Time: 245.53s
+Epoch  5/10 - Loss: 0.3091 - Accuracy: 0.9133 - Time: 187.78s
+Epoch  6/10 - Loss: 0.2904 - Accuracy: 0.9182 - Time: 250.15s
+Epoch  7/10 - Loss: 0.2749 - Accuracy: 0.9228 - Time: 213.77s
+Epoch  8/10 - Loss: 0.2616 - Accuracy: 0.9265 - Time: 215.45s
+Epoch  9/10 - Loss: 0.2498 - Accuracy: 0.9299 - Time: 229.16s
+Epoch 10/10 - Loss: 0.2391 - Accuracy: 0.9330 - Time: 184.74s
+
+=================================================================
+Entrenamiento completado en 2264.90 segundos
+=================================================================
+
+Evaluando en test set...
+Test Loss: 0.2266 - Test Accuracy: 0.9356
+
+Guardando resultados...
+
+=================================================================
+Programa finalizado exitosamente
+=================================================================
