@@ -2,15 +2,24 @@
 
 ## 🎯 Situación Actual
 
+**Estado: ✅ RESUELTO**
+
 **Tu rama `dev`**:
 
-- Tienes cambios sin commitear (frontend, API, exportación mejorada)
-- Estás 1 commit adelante de `origin/dev`
+- ✅ Código pusheado exitosamente a GitHub
+- ✅ Archivos binarios eliminados del historial
+- ✅ `.gitignore` configurado correctamente
 
 **Rama `devS` (compañero)**:
 
 - Tiene código Python que necesitas
 - Tiene estructura diferente (movió carpetas)
+
+**Problema Resuelto**:
+
+- ❌ ~~Error: archivos `.bin` mayores a 100 MB~~
+- ✅ Historial limpiado con `git filter-branch`
+- ✅ Push exitoso con `--force-with-lease`
 
 ---
 
@@ -114,6 +123,59 @@ echo "backend/data/mnist/*-ubyte" >> .gitignore
 git add .gitignore
 git commit -m "chore: Ignorar archivos binarios de MNIST"
 ```
+
+---
+
+## 🚨 PROBLEMA RESUELTO: Archivos Binarios Grandes
+
+### Error Encontrado
+
+```
+remote: error: File backend/data/mnist/train_images.bin is 179.44 MB
+remote: error: this exceeds GitHub's file size limit of 100.00 MB
+```
+
+### Causa
+
+Los archivos del dataset MNIST (`.bin`, `*ubyte`) fueron commiteados accidentalmente. GitHub rechaza archivos mayores a 100 MB.
+
+### Solución Aplicada
+
+```bash
+# 1. Eliminar archivos del índice (sin borrarlos del disco)
+git rm --cached backend/data/mnist/*.bin backend/data/mnist/*ubyte
+
+# 2. Mejorar .gitignore
+# (Ya hecho en el commit anterior)
+
+# 3. Limpiar el historial completo
+git filter-branch --force --index-filter \
+  'git rm --cached --ignore-unmatch backend/data/mnist/*.bin backend/data/mnist/*ubyte' \
+  --prune-empty --tag-name-filter cat -- --all
+
+# 4. Push con fuerza (segura)
+git push --force-with-lease origin dev
+```
+
+### ✅ Resultado
+
+- Archivos binarios eliminados del historial
+- Tamaño del repo reducido de 32 MB a 3 MB
+- Push exitoso a GitHub
+- `.gitignore` actualizado para prevenir futuros errores
+
+### 📝 Lección Aprendida
+
+**NUNCA versionar archivos binarios grandes**:
+
+- Dataset: Generar localmente con scripts
+- Binarios compilados: Ignorar en `.gitignore`
+- Resultados grandes: Guardar solo métricas (CSV pequeños)
+
+**Si es inevitable** (ej. modelos pre-entrenados):
+
+- Usar Git LFS (Large File Storage)
+- O almacenar en Google Drive/OneDrive y compartir link
 
 ---
 
