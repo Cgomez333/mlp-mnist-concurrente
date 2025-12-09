@@ -14,10 +14,16 @@ dist/
 build/
 
 # Dataset files (too large for git)
+# MNIST binary files
+backend/data/mnist/*.bin
+backend/data/mnist/*idx*
+backend/data/mnist/*ubyte
+backend/data/mnist/*.gz
 data/mnist/*.bin
 data/mnist/*idx*
 data/mnist/*ubyte
 data/mnist/*.gz
+# NumPy arrays
 *.npy
 *.npz
 
