@@ -92,11 +92,12 @@ int main()
     MLP *mlp = mlp_create(784, 512, 10, batch_size, 42);
 
     printf("Entrenando modelo (esto tomará tiempo)...\n");
-    printf("Solo 1 época para exportación rápida...\n\n");
+    printf("Entrenando 20 épocas con learning rate decay para máxima precisión...\n\n");
 
-    // Entrenar 1 época
-    for (int epoch = 0; epoch < 10; epoch++)
+    // Entrenar 20 épocas con learning rate decay
+    for (int epoch = 0; epoch < 20; epoch++)
     {
+        float learning_rate = 0.01 / (1.0 + epoch * 0.05);
         size_t num_batches = train->n_samples / batch_size;
 
         float *batch_images = (float *)malloc(batch_size * 784 * sizeof(float));
@@ -117,33 +118,36 @@ int main()
 
             mlp_forward(mlp, batch_images, batch_size);
             mlp_backward(mlp, batch_images, batch_labels, batch_size);
-            mlp_update_params(mlp, 0.01, batch_size);
+            mlp_update_params(mlp, learning_rate, batch_size);
 
             if (batch % 100 == 0)
             {
-                printf("\rBatch %zu/%zu", batch, num_batches);
-                fflush(stdout);
+                if (batch % 100 == 0)
+                {
+                    printf("\rÉpoca %d/20 - Batch %zu/%zu - LR: %.5f", epoch + 1, batch, num_batches, learning_rate);
+                    fflush(stdout);
+                }
             }
+
+            free(batch_images);
+            free(batch_labels);
+            printf("\n");
         }
 
-        free(batch_images);
-        free(batch_labels);
+        printf("\n✓ Entrenamiento completado\n");
+
+        // Exportar pesos
+        printf("Exportando pesos a JSON...\n");
+        export_weights_to_json(mlp, "../api/model_weights_sequential.json");
+
+        // Cleanup
+        mlp_free(mlp);
+        free_dataset(train);
+
+        printf("\n=================================================================\n");
+        printf("✓ Proceso completado exitosamente\n");
+        printf("Los pesos están en: backend/api/model_weights_sequential.json\n");
+        printf("=================================================================\n");
+
+        return 0;
     }
-
-    printf("\n\n✓ Entrenamiento completado\n");
-
-    // Exportar pesos
-    printf("Exportando pesos a JSON...\n");
-    export_weights_to_json(mlp, "../api/model_weights.json");
-
-    // Cleanup
-    mlp_free(mlp);
-    free_dataset(train);
-
-    printf("\n=================================================================\n");
-    printf("✓ Proceso completado exitosamente\n");
-    printf("Los pesos están en: backend/api/model_weights.json\n");
-    printf("=================================================================\n");
-
-    return 0;
-}

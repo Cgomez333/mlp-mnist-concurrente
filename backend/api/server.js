@@ -95,7 +95,11 @@ app.post('/api/predict', async (req, res) => {
 
   try {
     // Cargar modelo real (se cachea después de la primera carga)
-    const mlpModel = await loadModel();
+    const mlpModel = await loadModel(model); // 'sequential' o 'openmp'
+    
+    if (!mlpModel) {
+      throw new Error('Modelo no disponible');
+    }
     
     // Hacer predicción real con la red neuronal
     const prediction = mlpModel.predict(image);

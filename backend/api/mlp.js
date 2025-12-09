@@ -75,12 +75,12 @@ class MLP {
   }
 }
 
-// Singleton para cargar el modelo una sola vez
-let modelInstance = null;
+// Cargar modelo específico (sequential o openmp)
+const modelCache = {};
 
-export async function loadModel() {
-  if (modelInstance) {
-    return modelInstance;
+export async function loadModel(modelType = 'openmp') {
+  if (modelCache[modelType]) {
+    return modelCache[modelType];
   }
 
   try {
@@ -91,18 +91,18 @@ export async function loadModel() {
     const __filename = fileURLToPath(import.meta.url);
     const __dirname = path.dirname(__filename);
     
-    const weightsPath = path.join(__dirname, 'model_weights.json');
+    const weightsPath = path.join(__dirname, `model_weights_${modelType}.json`);
     const weightsData = fs.readFileSync(weightsPath, 'utf8');
     const weights = JSON.parse(weightsData);
     
-    modelInstance = new MLP(weights);
-    console.log('✅ Modelo MLP cargado exitosamente');
+    modelCache[modelType] = new MLP(weights);
+    console.log(`✅ Modelo ${modelType.toUpperCase()} cargado exitosamente`);
     console.log(`   - Input: ${weights.input_size}, Hidden: ${weights.hidden_size}, Output: ${weights.output_size}`);
     
-    return modelInstance;
+    return modelCache[modelType];
   } catch (error) {
-    console.error('❌ Error cargando modelo:', error.message);
-    console.error('   Asegúrate de haber ejecutado: backend/c_secuencial/export_weights');
+    console.error(`❌ Error cargando modelo ${modelType}:`, error.message);
+    console.error(`   Asegúrate de haber ejecutado: backend/c_${modelType}/export_weights`);
     return null;
   }
 }

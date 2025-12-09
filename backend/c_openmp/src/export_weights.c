@@ -92,11 +92,16 @@ int main()
     MLP *mlp = mlp_create(784, 512, 10, batch_size, 42);
 
     printf("Entrenando modelo (esto tomará tiempo)...\n");
-    printf("Entrenando 10 épocas con OpenMP para máxima precisión...\n\n");
+    printf("Entrenando 50 épocas con learning rate decay para MÁXIMA precisión...\n");
+    printf("Esto mejorará significativamente las predicciones!\n\n");
 
-    // Entrenar 10 épocas
-    for (int epoch = 0; epoch < 10; epoch++)
+    // Entrenar 50 épocas con learning rate decay más suave
+    float initial_lr = 0.015; // LR inicial más alto
+    for (int epoch = 0; epoch < 50; epoch++)
     {
+        // Learning rate decay más suave: lr = initial_lr / (1 + epoch * 0.02)
+        float lr = initial_lr / (1.0 + epoch * 0.02);
+
         size_t num_batches = train->n_samples / batch_size;
 
         float *batch_images = (float *)malloc(batch_size * 784 * sizeof(float));
@@ -117,24 +122,26 @@ int main()
 
             mlp_forward(mlp, batch_images, batch_size);
             mlp_backward(mlp, batch_images, batch_labels, batch_size);
-            mlp_update_params(mlp, 0.01, batch_size);
+            mlp_update_params(mlp, lr, batch_size);
 
             if (batch % 100 == 0)
             {
-                printf("\rÉpoca %d/10 - Batch %zu/%zu", epoch + 1, batch, num_batches);
+                printf("\rÉpoca %d/50 - Batch %zu/%zu - LR: %.5f", epoch + 1, batch, num_batches, lr);
                 fflush(stdout);
             }
         }
 
         free(batch_images);
         free(batch_labels);
+
+        printf("\n");
     }
 
     printf("\n\n✓ Entrenamiento completado\n");
 
     // Exportar pesos
     printf("Exportando pesos a JSON...\n");
-    export_weights_to_json(mlp, "../api/model_weights.json");
+    export_weights_to_json(mlp, "../api/model_weights_openmp.json");
 
     // Cleanup
     mlp_free(mlp);
@@ -142,7 +149,7 @@ int main()
 
     printf("\n=================================================================\n");
     printf("✓ Proceso completado exitosamente\n");
-    printf("Los pesos están en: backend/api/model_weights.json\n");
+    printf("Los pesos están en: backend/api/model_weights_openmp.json\n");
     printf("=================================================================\n");
 
     return 0;

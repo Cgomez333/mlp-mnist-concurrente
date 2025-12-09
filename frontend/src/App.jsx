@@ -109,6 +109,7 @@ function DrawTab() {
   const [prediction, setPrediction] = useState(null)
   const [loading, setLoading] = useState(false)
   const [selectedModel, setSelectedModel] = useState('sequential')
+  const [processedImage, setProcessedImage] = useState(null)
 
   useEffect(() => {
     const canvas = document.getElementById('drawCanvas')
@@ -215,17 +216,47 @@ function DrawTab() {
     const finalCtx = finalCanvas.getContext('2d')
     finalCtx.drawImage(tempCanvas, 0, 0, 28, 28)
     
-    // Obtener datos de píxeles
-    const finalImageData = finalCtx.getImageData(0, 0, 28, 28)
+    // Aplicar blur muy suave solo para anti-aliasing
+    finalCtx.filter = 'blur(0.5px)'
+    finalCtx.drawImage(finalCanvas, 0, 0)
+    finalCtx.filter = 'none'
+    
+    // Obtener datos de píxeles para normalización
+    let finalImageData = finalCtx.getImageData(0, 0, 28, 28)
     const pixels = []
+    
+    // Encontrar min y max para normalización de contraste
+    let minBrightness = 255
+    let maxBrightness = 0
     
     for (let i = 0; i < finalImageData.data.length; i += 4) {
       const r = finalImageData.data[i]
       const g = finalImageData.data[i + 1]
       const b = finalImageData.data[i + 2]
       const brightness = (r + g + b) / 3
-      pixels.push(1 - brightness / 255) // Invertir: 0=blanco, 1=negro
+      minBrightness = Math.min(minBrightness, brightness)
+      maxBrightness = Math.max(maxBrightness, brightness)
     }
+    
+    // Normalizar contraste y convertir a array
+    const range = maxBrightness - minBrightness
+    for (let i = 0; i < finalImageData.data.length; i += 4) {
+      const r = finalImageData.data[i]
+      const g = finalImageData.data[i + 1]
+      const b = finalImageData.data[i + 2]
+      let brightness = (r + g + b) / 3
+      
+      // Normalizar entre 0-255
+      if (range > 0) {
+        brightness = ((brightness - minBrightness) / range) * 255
+      }
+      
+      // Invertir: 0=blanco, 1=negro
+      pixels.push(1 - brightness / 255)
+    }
+    
+    // Guardar imagen procesada para visualización
+    setProcessedImage(finalCanvas.toDataURL())
 
     setLoading(true)
     
@@ -276,16 +307,19 @@ function DrawTab() {
                 borderRadius: '8px',
                 border: '2px solid #667eea',
                 fontSize: '1rem',
-                marginBottom: '0.5rem'
+                marginBottom: '0.5rem',
+                width: '100%'
               }}
             >
-              <option value="sequential">C Secuencial</option>
-              <option value="openmp">C + OpenMP</option>
+              <option value="openmp">🚀 C + OpenMP (20 épocas - Recomendado)</option>
+              <option value="sequential">📝 C Secuencial (1 época - Básico)</option>
             </select>
-            <button className="btn-primary" onClick={predict} disabled={loading}>
-              {loading ? '⏳ Prediciendo...' : '🔮 Predecir'}
-            </button>
-            <button className="btn-secondary" onClick={clearCanvas}>🗑️ Limpiar</button>
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button className="btn-primary" onClick={predict} disabled={loading} style={{ flex: 1 }}>
+                {loading ? '⏳ Prediciendo...' : '🔮 Predecir'}
+              </button>
+              <button className="btn-secondary" onClick={clearCanvas} style={{ flex: 1 }}>🔄 Reintentar</button>
+            </div>
           </div>
         </div>
         
@@ -301,7 +335,57 @@ function DrawTab() {
                 : 'Dibuja un número (0-9)'
               }
             </p>
+            {prediction && prediction.confidence < 0.7 && (
+              <div style={{
+                background: '#fff3cd',
+                border: '1px solid #ffc107',
+                borderRadius: '8px',
+                padding: '0.75rem',
+                marginTop: '0.5rem',
+                fontSize: '0.85rem'
+              }}>
+                <strong>💡 Sugerencia:</strong>
+                <ul style={{ margin: '0.5rem 0 0 0', paddingLeft: '1.2rem' }}>
+                  <li>Dibuja más grande y centrado</li>
+                  <li>Usa trazos más gruesos</li>
+                  <li>Intenta usar el modelo OpenMP (20 épocas)</li>
+                </ul>
+              </div>
+            )}
+            {prediction && prediction.confidence >= 0.9 && (
+              <div style={{
+                background: '#d4edda',
+                border: '1px solid #28a745',
+                borderRadius: '8px',
+                padding: '0.5rem',
+                marginTop: '0.5rem',
+                fontSize: '0.85rem',
+                color: '#155724'
+              }}>
+                ✅ <strong>Excelente!</strong> Predicción muy confiable
+              </div>
+            )}
           </div>
+          
+          {processedImage && (
+            <div style={{ margin: '1rem 0', textAlign: 'center' }}>
+              <h4 style={{ fontSize: '0.9rem', marginBottom: '0.5rem', color: '#666' }}>
+                🔍 Imagen procesada (28×28):
+              </h4>
+              <img 
+                src={processedImage} 
+                alt="Procesada"
+                style={{ 
+                  width: '140px', 
+                  height: '140px', 
+                  imageRendering: 'pixelated',
+                  border: '2px solid #ddd',
+                  borderRadius: '4px'
+                }}
+              />
+            </div>
+          )}
+          
           <div className="probabilities">
             {prediction && prediction.probabilities ? (
               <div>

@@ -2,6 +2,42 @@
 
 Implementación y paralelización de una Red Neuronal MLP desde cero para clasificación de dígitos MNIST.
 
+## 🚀 Inicio Rápido
+
+### **Ver las 60,000 imágenes del dataset:**
+
+```bash
+pip install numpy matplotlib
+python visualizar_mnist.py
+```
+
+### **Probar el sistema completo:**
+
+```bash
+# 1. Entrenar modelo (7 min)
+cd backend/c_openmp
+./export_weights_openmp.exe
+
+# 2. Iniciar backend
+cd backend/api
+npm start
+
+# 3. Iniciar frontend (nueva terminal)
+cd frontend
+npm run dev
+
+# 4. Abrir: http://localhost:5173
+```
+
+**📖 Documentación:**
+
+- **`INSTRUCCIONES_RAPIDAS.md`** - Guía de inicio rápido
+- **`COMO_FUNCIONA_TODO.md`** - Explicación completa del sistema
+- **`DATASET_MNIST.md`** - Todo sobre las 60,000 imágenes
+- **`SOLUCION_PREDICCION_INCORRECTA.md`** - Solución de problemas
+
+---
+
 ## 📋 Descripción del Proyecto
 
 Este proyecto implementa un **Perceptrón Multicapa (MLP)** desde cero en diferentes paradigmas de programación para comparar su rendimiento:
