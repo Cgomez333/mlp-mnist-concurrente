@@ -11,7 +11,9 @@
 
 ### ¿Qué es este proyecto?
 
-Es una implementación **desde cero** de una Red Neuronal MLP (Perceptrón Multicapa) para clasificar dígitos escritos a mano (dataset MNIST). El objetivo **NO es la precisión**, sino **comparar el rendimiento de diferentes paradigmas de programación concurrente**.
+Es una implementación **desde cero** de una **Red Neuronal MLP** _(Multilayer Perceptron = Perceptrón Multicapa: red neuronal artificial con múltiples capas de neuronas conectadas)_ para clasificar dígitos escritos a mano del **dataset MNIST** _(Modified National Institute of Standards and Technology: colección de 70,000 imágenes de dígitos del 0-9 escritos a mano, estándar para aprender Machine Learning)_.
+
+El objetivo **NO es la precisión** _(lograr el mayor % de aciertos)_, sino **comparar el rendimiento** _(velocidad de ejecución)_ **de diferentes paradigmas de programación concurrente** _(formas de ejecutar código en paralelo: con hilos, procesos, GPU, etc.)_.
 
 ### Arquitectura de la Red Neuronal
 
@@ -20,32 +22,76 @@ ENTRADA (784 neuronas)  →  OCULTA (512 neuronas, ReLU)  →  SALIDA (10 neuron
      28x28 píxeles              Aprende patrones              0,1,2,3,4,5,6,7,8,9
 ```
 
+**Explicación de componentes**:
+
+- **784 neuronas de entrada**: Cada píxel de la imagen 28×28 = 784 valores
+- **ReLU** _(Rectified Linear Unit)_: Función de activación que convierte negativos en cero: `f(x) = max(0, x)`. Ayuda a la red a aprender patrones no lineales
+- **Softmax**: Función que convierte números en probabilidades que suman 100%. Ej: [0.05, 0.02, 0.87, ...] = 5% es un "0", 2% es un "1", 87% es un "2"
+
 ### Implementaciones Requeridas (6 versiones)
 
-| #   | Versión                | Estado       | Responsable | Speedup Esperado   |
-| --- | ---------------------- | ------------ | ----------- | ------------------ |
-| 1a  | Python Secuencial      | ✅ En `devS` | Compañero   | Baseline (1.0×)    |
-| 1b  | **C Secuencial**       | ✅ **TÚ**    | **TÚ**      | 2-3× vs Python     |
-| 2a  | Python Multiprocessing | ✅ En `devS` | Compañero   | 2-4× vs Python seq |
-| 2b  | **C + OpenMP**         | ✅ **TÚ**    | **TÚ**      | **4-8× vs C seq**  |
-| 3a  | CUDA (C++)             | ⏳ Pendiente | Ambos       | 10-50×             |
-| 3b  | PyCUDA (Python)        | ⏳ Pendiente | Ambos       | 8-30×              |
+| #   | Versión                | Estado           | Responsable | Speedup Esperado   |
+| --- | ---------------------- | ---------------- | ----------- | ------------------ |
+| 1a  | Python Secuencial      | ✅ **INTEGRADO** | Compañero   | Baseline (1.0×)    |
+| 1b  | **C Secuencial**       | ✅ **TÚ**        | **TÚ**      | 2-3× vs Python     |
+| 2a  | Python Multiprocessing | ✅ **INTEGRADO** | Compañero   | 2-4× vs Python seq |
+| 2b  | **C + OpenMP**         | ✅ **TÚ**        | **TÚ**      | **4-8× vs C seq**  |
+| 3a  | CUDA (C++)             | ⏳ Pendiente     | Ambos       | 10-50×             |
+| 3b  | PyCUDA (Python)        | ⏳ Pendiente     | Ambos       | 8-30×              |
+
+**Glosario de términos**:
+
+- **Baseline** _(línea base)_: Versión de referencia para comparar. Su speedup es 1.0× (se compara consigo misma)
+- **Speedup** _(aceleración)_: Cuánto más rápido corre. Ej: 4× = 4 veces más rápido = tarda 1/4 del tiempo
+- **Secuencial**: Código que ejecuta una instrucción a la vez (sin paralelismo)
+- **Multiprocessing**: Paralelismo usando múltiples procesos separados (cada uno con su propia memoria)
+- **OpenMP** _(Open Multi-Processing)_: Librería para paralelizar código C/C++ usando hilos (threads que comparten memoria)
+- **CUDA**: Plataforma de NVIDIA para programar GPUs (miles de núcleos pequeños trabajando juntos)
+- **PyCUDA**: Versión de CUDA para Python
 
 ---
 
 ## 🏗️ ARQUITECTURA TÉCNICA
 
-### Backend (Tu parte - rama `dev`)
+### Backend (Integrado - rama `dev`)
 
-#### 1. **C Secuencial** (`backend/c_secuencial/`)
+#### 1. **Python Secuencial** (`backend/py_secuencial/`)
 
-- **Propósito**: Baseline en C, más rápido que Python pero sin paralelización
+- **Propósito**: Baseline _(versión de referencia)_ en Python, implementación estándar sin optimizaciones
 - **Componentes**:
-  - `include/matrix.h`: Multiplicación de matrices (GEMM)
-  - `include/mlp.h`: Forward/Backward propagation
-  - `include/data.h`: Carga de archivos `.bin` del dataset
-  - `src/train.c`: Loop de entrenamiento (10 epochs)
-  - `src/export_weights.c`: Exporta pesos a JSON para el frontend
+  - `src/mlp.py`: Clase MLP con **Forward** _(calcular predicción)_ y **Backward** _(calcular errores para aprender)_
+  - `src/data_loader.py`: Carga MNIST desde formatos **IDX** _(formato original del dataset)_ o **BIN** _(formato binario personalizado para C)_
+  - `src/train.py`: **Loop de entrenamiento** _(ciclo que repite el proceso de aprender epoch por epoch)_
+- **Ejecutar**:
+
+```bash
+cd backend/py_secuencial/src
+python train.py --epochs 10 --batch-size 256
+# --epochs: número de veces que la red ve TODO el dataset (10 pasadas completas)
+# --batch-size: cuántas imágenes procesar juntas antes de actualizar pesos (256 imágenes a la vez)
+```
+
+#### 2. **Python Multiprocessing** (`backend/py_multiprocessing/`)
+
+- **Propósito**: Paralelización con **procesos** _(programas separados que NO comparten memoria)_ = memoria distribuida
+- **Estrategia**: División de **mini-batches** _(pequeños grupos de imágenes)_ entre **workers** _(procesos trabajadores)_
+- **Ejecutar**:
+
+```bash
+cd backend/py_multiprocessing/src
+python train_mp.py --epochs 10 --workers 4
+# --workers: número de procesos paralelos (4 = usa 4 núcleos de CPU)
+```
+
+#### 3. **C Secuencial** (`backend/c_secuencial/`)
+
+- **Propósito**: Baseline en C, más rápido que Python (código compilado) pero sin paralelización
+- **Componentes**:
+  - `include/matrix.h`: Multiplicación de matrices (**GEMM** = _General Matrix Multiply_, operación matemática más costosa de la red)\*
+  - `include/mlp.h`: **Forward propagation** _(calcular predicción capa por capa)_ y **Backward propagation** _(calcular gradientes = dirección del error para corregir pesos)_
+  - `include/data.h`: Carga de archivos `.bin` _(binarios con las imágenes preprocesadas)_
+  - `src/train.c`: Loop de entrenamiento (10 **epochs** = _pasadas completas por el dataset_)
+  - `src/export_weights.c`: Exporta **pesos** _(parámetros aprendidos W1, W2, b1, b2)_ a **JSON** _(formato legible para JavaScript)_ para el frontend
 
 **Compilar y ejecutar**:
 
@@ -60,13 +106,13 @@ make
 - `backend/results/raw/c_sequential.csv` (métricas por época)
 - `backend/api/model_weights_sequential.json` (pesos para frontend)
 
-#### 2. **C + OpenMP** (`backend/c_openmp/`)
+#### 4. **C + OpenMP** (`backend/c_openmp/`)
 
-- **Propósito**: Paralelización con hilos (memoria compartida)
+- **Propósito**: Paralelización con **hilos** _(threads: mini-procesos livianos que comparten la misma memoria)_ = memoria compartida
 - **Optimizaciones**:
-  - `#pragma omp parallel for` en multiplicación de matrices
-  - Paralelización del batch processing
-  - Uso de `OMP_NUM_THREADS` para escalar
+  - `#pragma omp parallel for`: **Directiva** _(instrucción especial)_ de OpenMP que divide un bucle entre varios hilos automáticamente
+  - Paralelización del **batch processing** _(procesar múltiples lotes de imágenes simultáneamente)_
+  - Uso de `OMP_NUM_THREADS`: **Variable de entorno** _(configuración del sistema)_ que controla cuántos hilos usar (ej: 8 = usar 8 núcleos de CPU)
 
 **Compilar y ejecutar**:
 
@@ -82,13 +128,13 @@ export OMP_NUM_THREADS=8  # En Windows: set OMP_NUM_THREADS=8
 - `backend/results/raw/c_openmp.csv`
 - `backend/api/model_weights_openmp.json`
 
-#### 3. **API Node.js** (`backend/api/`)
+#### 5. **API Node.js** (`backend/api/`)
 
-- **Propósito**: Servidor REST para que el frontend haga predicciones
-- **Endpoints**:
-  - `GET /api/health`: Verificar servidor
-  - `GET /api/models`: Listar modelos disponibles
-  - `POST /api/predict`: Predecir dígito
+- **Propósito**: Servidor **REST** _(Representational State Transfer: estilo de comunicación web donde el cliente hace peticiones HTTP)_ para que el frontend haga predicciones
+- **Endpoints** _(URLs específicas que el servidor entiende)_:
+  - `GET /api/health`: **GET** _(solicitar información)_ para verificar si el servidor está funcionando
+  - `GET /api/models`: Listar modelos disponibles (sequential, openmp)
+  - `POST /api/predict`: **POST** _(enviar datos)_ una imagen y recibir la predicción del dígito
 
 **Iniciar**:
 
@@ -98,13 +144,13 @@ npm install
 npm start  # Puerto 3001
 ```
 
-#### 4. **Frontend React** (`frontend/`)
+#### 6. **Frontend React** (`frontend/`)
 
-- **Propósito**: Interfaz para dibujar y predecir dígitos
+- **Propósito**: Interfaz gráfica de usuario para dibujar y predecir dígitos
 - **Características**:
-  - Canvas para dibujar (28×28)
-  - Selección de modelo (Sequential/OpenMP)
-  - Visualización de probabilidades
+  - **Canvas** _(lienzo HTML5)_: Área de dibujo que captura trazos del mouse y los convierte a imagen 28×28 píxeles
+  - Selección de modelo (Sequential/OpenMP): Dropdown para elegir qué versión de la red usar
+  - Visualización de **probabilidades** _(% de confianza de cada dígito 0-9)_: Gráfico de barras mostrando qué tan segura está la red
 
 **Iniciar**:
 
@@ -118,10 +164,10 @@ npm run dev  # Puerto 5173
 
 **Archivos generados por scripts Python**:
 
-- `train_images.bin`: 60,000 imágenes (180 MB)
-- `train_labels.bin`: 60,000 etiquetas one-hot (2.4 MB)
-- `test_images.bin`: 10,000 imágenes (30 MB)
-- `test_labels.bin`: 10,000 etiquetas (0.4 MB)
+- `train_images.bin`: 60,000 imágenes para entrenar (180 MB)
+- `train_labels.bin`: 60,000 **etiquetas one-hot** _(representación donde el dígito correcto es 1 y el resto 0. Ej: "3" = [0,0,0,1,0,0,0,0,0,0])_ (2.4 MB)
+- `test_images.bin`: 10,000 imágenes para validar (30 MB)
+- `test_labels.bin`: 10,000 etiquetas one-hot para validación (0.4 MB)
 
 **⚠️ Estos archivos NO están en el repositorio** (son generados localmente).
 
@@ -131,51 +177,53 @@ npm run dev  # Puerto 5173
 
 ### Estado Actual
 
-**Tu rama `dev`**:
+**Tu rama `dev` (✅ ACTUALIZADA)**:
 
-- 1 commit adelante de `origin/dev`
-- Cambios sin commitear:
-  - ✅ Frontend completo
-  - ✅ API refactorizada
-  - ✅ Exportación de pesos mejorada
-  - ⚠️ Archivos eliminados: `CHECKLIST.md`, `RESUMEN.md`, `start.sh`
+- ✅ Código Python integrado desde `devS`
+- ✅ Frontend completo y funcional
+- ✅ API refactorizada para múltiples modelos
+- ✅ Exportación de pesos mejorada
+- ✅ Archivos binarios excluidos de Git
+- ✅ Todo pusheado exitosamente a GitHub
 
-**Rama `devS` (compañero)**:
+**Estructura Completa**:
 
-- Contiene Python secuencial y multiprocessing
-- Movió carpetas `c_*` a la raíz (diferente estructura)
-- Eliminó todo el frontend y API
+- `backend/py_secuencial/` - Python baseline
+- `backend/py_multiprocessing/` - Python paralelo
+- `backend/c_secuencial/` - C baseline
+- `backend/c_openmp/` - C paralelo (4.45× speedup)
+- `backend/api/` - Node.js REST API
+- `frontend/` - React UI
 
-### Plan de Integración
+### Integración Completada ✅
+
+**Lo que se hizo**:
 
 ```bash
-# PASO 1: Commitear tus cambios actuales
-cd "c:\Users\carli\OneDrive\Desktop\Universidad de Caldas\Semestre VII\Concurrentes\Proyecto\mlp-mnist-concurrente"
-
+# ✅ PASO 1: Guardado de trabajo
 git add .
-git commit -m "feat: Frontend React + API Node.js + exportación de pesos mejorada"
+git commit -m "feat: Frontend React + API Node.js + exportación mejorada"
 
-# PASO 2: Pushear tu rama dev
+# ✅ PASO 2: Limpieza de archivos binarios
+git filter-branch --force --index-filter 'git rm --cached --ignore-unmatch backend/data/mnist/*.bin backend/data/mnist/*ubyte'
+git push --force-with-lease origin dev
+
+# ✅ PASO 3: Integración de código Python (cherry-pick)
+git checkout -b dev-integration
+git checkout origin/devS -- py_secuencial py_multiprocessing
+mv py_secuencial backend/
+mv py_multiprocessing backend/
+# Ajuste de rutas en archivos Python
+git add backend/py_*
+git commit -m "feat: Integrar Python desde devS"
+
+# ✅ PASO 4: Merge y push
+git checkout dev
+git merge dev-integration
 git push origin dev
-
-# PASO 3: Traer los cambios de Python (devS) SIN sobrescribir tu trabajo
-# Opción A: Merge (recomendado)
-git merge origin/devS -m "merge: Integrar implementaciones Python de devS"
-
-# Si hay conflictos (es probable), Git te avisará
-# Los conflictos estarán en archivos que ambos modificaron
-
-# Opción B: Cherry-pick (más control)
-# Solo traer los archivos de Python sin tocar tu estructura
-git checkout origin/devS -- py_secuencial
-git checkout origin/devS -- py_multiprocessing
-git commit -m "feat: Agregar implementaciones Python desde devS"
-
-# PASO 4: Verificar estructura final
-ls
 ```
 
-**⚠️ RECOMENDACIÓN**: Usa la **Opción B (cherry-pick)** porque `devS` tiene una estructura diferente (movió carpetas) y podría romper tu frontend/backend.
+**Resultado**: Todas las implementaciones Python están en `backend/` con rutas corregidas.
 
 ---
 
@@ -183,33 +231,76 @@ ls
 
 ### Forward Propagation (Predicción)
 
+**Notación**:
+
+- `@` = multiplicación de matrices
+- `(batch, 512)` = dimensiones de la matriz (filas, columnas)
+- `W1, W2` = matrices de pesos (parámetros aprendidos)
+- `b1, b2` = vectores de bias (desplazamiento aprendido)
+
 ```
 1. Z1 = X @ W1 + b1        # (batch, 512) = (batch, 784) @ (784, 512) + (512,)
+   # Cada imagen (784 píxeles) se multiplica por pesos W1 para obtener 512 valores
+
 2. A1 = ReLU(Z1)           # A1[i] = max(0, Z1[i])
+   # ReLU convierte negativos en cero, mantiene positivos
+
 3. Z2 = A1 @ W2 + b2       # (batch, 10) = (batch, 512) @ (512, 10) + (10,)
+   # 512 valores se multiplican por pesos W2 para obtener 10 valores (uno por dígito)
+
 4. A2 = Softmax(Z2)        # A2[j] = exp(Z2[j]) / sum(exp(Z2))
+   # Softmax convierte los 10 valores en probabilidades que suman 1.0 (100%)
 ```
 
 ### Backward Propagation (Aprendizaje)
 
+**Notación**:
+
+- `dZ, dW, db` = **gradientes** _(derivadas que indican cuánto cambiar cada parámetro)_
+- `^T` = **transpuesta** _(voltear filas y columnas de una matriz)_
+- `⊙` = multiplicación elemento a elemento (Hadamard)
+- `Y_true` = etiqueta correcta (respuesta esperada)
+
 ```
 1. dZ2 = A2 - Y_true          # (batch, 10) Error en la salida
+   # Diferencia entre predicción (A2) y realidad (Y_true)
+
 2. dW2 = A1^T @ dZ2 / batch   # (512, 10) Gradiente de W2
+   # Calcula cuánto contribuyó cada peso W2 al error
+
 3. db2 = sum(dZ2) / batch     # (10,) Gradiente de b2
-4. dA1 = dZ2 @ W2^T           # (batch, 512) Error propagado
-5. dZ1 = dA1 ⊙ ReLU'(Z1)     # (batch, 512) ⊙ = elemento a elemento
+   # Suma de errores para cada neurona de salida
+
+4. dA1 = dZ2 @ W2^T           # (batch, 512) Error propagado hacia atrás
+   # Distribuye el error de salida hacia la capa oculta
+
+5. dZ1 = dA1 ⊙ ReLU'(Z1)     # (batch, 512) ⊙ = multiplicación elemento a elemento
+   # ReLU'(x) = 1 si x>0, 0 si x≤0 (derivada de ReLU)
+
 6. dW1 = X^T @ dZ1 / batch    # (784, 512) Gradiente de W1
+   # Calcula cuánto contribuyó cada peso W1 al error
+
 7. db1 = sum(dZ1) / batch     # (512,) Gradiente de b1
+   # Suma de errores para cada neurona oculta
 ```
 
 ### Actualización de Pesos
 
+**α (alpha)** = **learning rate** _(tasa de aprendizaje)_: qué tan grande es cada paso de corrección
+
+- Si α es muy grande (ej: 1.0) → aprende rápido pero puede pasarse
+- Si α es muy pequeño (ej: 0.0001) → aprende lento pero con precisión
+- 0.01 es un buen balance
+
 ```
-W1 = W1 - α * dW1   # α = 0.01 (learning rate)
-b1 = b1 - α * db1
+W1 = W1 - α * dW1   # Resta el gradiente escalado por α
+                     # Ejemplo: si dW1=2 y α=0.01, resta 0.02
+b1 = b1 - α * db1   # Lo mismo para bias
 W2 = W2 - α * dW2
 b2 = b2 - α * db2
 ```
+
+**Intuición**: Los gradientes indican "hacia dónde subir el error", así que restamos para bajar el error.
 
 ### Cuello de Botella Computacional
 
@@ -230,17 +321,18 @@ b2 = b2 - α * db2
 
 ```c
 // ANTES (Secuencial)
-for (int i = 0; i < M; i++) {
-    for (int j = 0; j < N; j++) {
+for (int i = 0; i < M; i++) {              // M filas
+    for (int j = 0; j < N; j++) {          // N columnas
         float sum = 0.0f;
-        for (int k = 0; k < K; k++) {
+        for (int k = 0; k < K; k++) {      // K elementos a sumar
             sum += A[i*K + k] * B[k*N + j];
         }
-        C[i*N + j] = sum;
+        C[i*N + j] = sum;                   // Resultado en C[i][j]
     }
 }
+// Esto ejecuta M×N×K operaciones en serie (uno tras otro)
 
-// DESPUÉS (Paralelo)
+// DESPUÉS (Paralelo con OpenMP)
 #pragma omp parallel for collapse(2) schedule(dynamic)
 for (int i = 0; i < M; i++) {
     for (int j = 0; j < N; j++) {
@@ -251,12 +343,18 @@ for (int i = 0; i < M; i++) {
         C[i*N + j] = sum;
     }
 }
+// OpenMP divide el trabajo entre múltiples hilos automáticamente
 ```
 
-**Explicación**:
+**Explicación de directivas OpenMP**:
 
-- `collapse(2)`: Combina los 2 loops externos en uno solo (más trabajo paralelo)
-- `schedule(dynamic)`: Distribuye trabajo dinámicamente (mejor balanceo)
+- **`#pragma omp parallel for`**: Directiva que dice "divide este bucle entre varios hilos"
+- **`collapse(2)`**: Combina los 2 loops externos (i y j) en uno solo → más iteraciones = mejor distribución entre hilos
+  - Sin collapse: 512 iteraciones (solo i)
+  - Con collapse(2): 512×10 = 5,120 iteraciones (i×j)
+- **`schedule(dynamic)`**: Estrategia de distribución dinámica
+  - **static** _(estático)_: Divide las iteraciones equitativamente al inicio (rápido pero puede desbalancearse)
+  - **dynamic** _(dinámico)_: Los hilos toman trabajo según terminan (mejor balance, pequeño overhead)
 
 #### 2. Reducción Paralela para Gradientes
 
@@ -267,11 +365,29 @@ for (int i = 0; i < batch_size; i++) {
         db2[j] += gradients[i * OUTPUT_SIZE + j];
     }
 }
+// Suma los gradientes de todas las imágenes del batch
 ```
 
-**Explicación**:
+**Explicación de `reduction`**:
 
-- `reduction(+:array)`: Cada hilo acumula en su copia privada, luego se suman
+- **Problema sin reduction**: Si múltiples hilos suman a `db2[j]` simultáneamente → **race condition** _(conflicto: dos hilos leen/escriben al mismo tiempo, resultado incorrecto)_
+- **Solución con reduction**:
+  1. Cada hilo crea su propia copia privada de `db2`
+  2. Cada hilo suma en su copia (sin conflictos)
+  3. Al final, OpenMP combina todas las copias sumándolas
+- **`reduction(+:db2[:OUTPUT_SIZE])`**: Operador `+` (suma), variable `db2`, tamaño `OUTPUT_SIZE` (10 elementos)
+
+**Alternativa sin reduction** _(más lenta)_:
+
+````c
+#pragma omp parallel for
+for (int i = 0; i < batch_size; i++) {
+    #pragma omp critical  // Solo un hilo a la vez puede entrar aquí
+    for (int j = 0; j < OUTPUT_SIZE; j++) {
+        db2[j] += gradients[i * OUTPUT_SIZE + j];
+    }
+}
+// Critical crea un cuello de botella (serializa el trabajo)
 
 ### Escalabilidad Medida
 
@@ -282,7 +398,20 @@ for (int i = 0; i < batch_size; i++) {
 | 4     | 450        | 3.42×     | 86%        |
 | 8     | 346        | **4.45×** | 56%        |
 
-**Observación**: La eficiencia baja al aumentar hilos (Ley de Amdahl).
+**Cómo se calculan**:
+- **Speedup** = Tiempo(1 hilo) / Tiempo(N hilos)
+  - Ej: 1539s / 346s = 4.45×
+- **Eficiencia** = Speedup / Número de hilos × 100%
+  - Ej: 4.45 / 8 × 100% = 56%
+  - **Eficiencia 100%** = speedup lineal ideal (doblar hilos = mitad de tiempo)
+  - **Eficiencia <100%** = hay partes que no se pueden paralelizar + overhead
+
+**Observación**: La eficiencia baja al aumentar hilos debido a:
+1. **Ley de Amdahl**: Siempre hay una porción secuencial (S) que no se paraleliza
+   - Speedup máximo = 1 / S
+   - Si 5% es secuencial → speedup máximo = 1/0.05 = 20×
+2. **Overhead** *(costo extra)*: Crear hilos, sincronizar, combinar resultados
+3. **Contención de memoria** *(cuellos de botella)*: Múltiples hilos accediendo a la misma RAM
 
 ---
 
@@ -297,7 +426,7 @@ epoch,train_loss,train_accuracy,test_accuracy,time_seconds
 1,0.532,0.842,0.838,154.3
 2,0.321,0.906,0.901,152.1
 ...
-```
+````
 
 ### Gráficas del Informe
 
@@ -505,7 +634,7 @@ int main() {
 - Mostrar frontend prediciendo un dígito
 - O ejecutar en terminal
 
-#### Diapositiva 9: Conclusiones
+#### Diapositiva 9: Conclusilei esto, ahoravamos probar que todo funioones
 
 - OpenMP logró 4.45× con 8 hilos
 - Multiprocessing tiene overhead de IPC
@@ -635,13 +764,13 @@ Real: 4.45× (porque overhead de sincronización)
 ### Código Fuente ✅
 
 ```
-✅ c_secuencial/     (compilable con make)
-✅ c_openmp/         (compilable con make)
-⏳ pycuda_gpu/       (pendiente)
-✅ py_secuencial/    (en rama devS)
-✅ py_multiprocessing/ (en rama devS)
-✅ frontend/         (extra, no requerido)
-✅ backend/api/      (extra, no requerido)
+✅ backend/py_secuencial/       (Python + NumPy)
+✅ backend/py_multiprocessing/  (Python + multiprocessing)
+✅ backend/c_secuencial/        (compilable con make)
+✅ backend/c_openmp/            (compilable con make)
+⏳ backend/pycuda_gpu/          (pendiente)
+✅ frontend/                    (extra, no requerido)
+✅ backend/api/                 (extra, no requerido)
 ```
 
 ### Informe Técnico (Word/PDF)
@@ -800,18 +929,15 @@ curl http://localhost:3001/api/health
 
 ## ✅ CONCLUSIÓN
 
-**Lo que YA TIENES (rama `dev`)**:
+**Lo que YA TIENES (rama `dev`) - ✅ INTEGRADO**:
 
-- ✅ C Secuencial (completo y funcional)
-- ✅ C OpenMP (4.45× speedup)
+- ✅ Python Secuencial (`backend/py_secuencial/`)
+- ✅ Python Multiprocessing (`backend/py_multiprocessing/`)
+- ✅ C Secuencial (`backend/c_secuencial/`)
+- ✅ C OpenMP (`backend/c_openmp/`) - **4.45× speedup**
 - ✅ Frontend React (extra, no obligatorio)
 - ✅ API Node.js (extra, no obligatorio)
 - ✅ Sistema de exportación de pesos
-
-**Lo que FALTA (rama `devS` de tu compañero)**:
-
-- Python Secuencial
-- Python Multiprocessing
 
 **Lo que QUEDA POR HACER (ambos)**:
 

@@ -78,7 +78,7 @@ def main():
         test_acc = mlp.accuracy(X_test, Y_test)
 
         print(f"Epoch {epoch}: loss={epoch_loss:.4f} | train_acc={train_acc:.4f} | test_acc={test_acc:.4f}")
-        print(f" → Batches procesados este epoch: {batch_counter}\n")
+        print(f"   Batches procesados este epoch: {batch_counter}\n")
 
     total_time = time.time() - start_time
     print(f"Entrenamiento completado en {total_time:.2f} segundos")
